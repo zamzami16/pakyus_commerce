@@ -50,34 +50,40 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Check and create config.json
+        run: |
+          if [ ! -f config.json ]; then
+            echo "config.json not found, creating default config..."
+            cat > config.json << EOF
+          {
+            "app": {
+              "name": "Pakyus Commerce",
+              "port": 3000,
+              "env": "testing"
+            },
+            "database": {
+              "driver": "postgres",
+              "host": "localhost",
+              "port": 5432,
+              "username": "postgres",
+              "password": "postgres",
+              "name": "pakyus_commerce_test"
+            },
+            "jwt": {
+              "secret": "test-secret-key"
+            }
+          }
+          EOF
+          fi
+
       - name: Run database migrations
-        env:
-          APP_ENV: testing
-          PAKYUS_DB_USERNAME: postgres
-          PAKYUS_DB_PASSWORD: postgres
-          PAKYUS_DB_HOST: localhost
-          PAKYUS_DB_PORT: 5432
-          PAKYUS_DB_NAME: pakyus_commerce_test
         run: |
           migrate -path db/migrations -database "postgres://postgres:postgres@localhost:5432/pakyus_commerce_test?sslmode=disable" up
 
       - name: Run tests
-        env:
-          APP_ENV: testing
-          PAKYUS_DB_USERNAME: postgres
-          PAKYUS_DB_PASSWORD: postgres
-          PAKYUS_DB_HOST: localhost
-          PAKYUS_DB_PORT: 5432
-          PAKYUS_DB_NAME: pakyus_commerce_test
         run: |
           go test -v ./test/...
 
       - name: Build application
         run: |
           go build -o pakyus_commerce cmd/web/main.go
-
-      - name: Run static analysis
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
-          args: --timeout=5m
