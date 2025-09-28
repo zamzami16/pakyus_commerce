@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pakyus_commerce_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run database migrations
+        env:
+          APP_ENV: testing
+          PAKYUS_DB_USERNAME: postgres
+          PAKYUS_DB_PASSWORD: postgres
+          PAKYUS_DB_HOST: localhost
+          PAKYUS_DB_PORT: 5432
+          PAKYUS_DB_NAME: pakyus_commerce_test
+        run: |
+          migrate -path db/migrations -database "postgres://postgres:postgres@localhost:5432/pakyus_commerce_test?sslmode=disable" up
+
+      - name: Run tests
+        env:
+          APP_ENV: testing
+          PAKYUS_DB_USERNAME: postgres
+          PAKYUS_DB_PASSWORD: postgres
+          PAKYUS_DB_HOST: localhost
+          PAKYUS_DB_PORT: 5432
+          PAKYUS_DB_NAME: pakyus_commerce_test
+        run: |
+          go test -v ./test/...
+
+      - name: Build application
+        run: |
+          go build -o pakyus_commerce cmd/web/main.go
+
+      - name: Run static analysis
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m

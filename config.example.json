@@ -1,0 +1,40 @@
+{
+  "app": {
+    "name": "pakyus_commerce"
+  },
+  "web": {
+    "prefork": false,
+    "port": 3000
+  },
+  "log": {
+    "level": 6
+  },
+  "database": {
+    "username": "your_db_username",
+    "password": "your_db_password",
+    "host": "your_db_host",
+    "port": 5432,
+    "name": "pakyus_commerce",
+    "pool": {
+      "idle": 10,
+      "max": 50,
+      "lifetime": 300
+    }
+  },
+  "kafka": {
+    "bootstrap": {
+      "servers": "your_kafka_servers"
+    },
+    "group": {
+      "id": "pakyus_commerce_test"
+    },
+    "auto": {
+      "offset": {
+        "reset": "earliest"
+      }
+    },
+    "producer": {
+      "enabled": false
+    }
+  }
+}

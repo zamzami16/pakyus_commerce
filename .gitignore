@@ -1,0 +1,19 @@
+.idea
+*.exe
+
+# Config files with sensitive data (production config)
+config.json
+config.dev.json
+
+# Local development config (optional - can be shared among team)
+# config.dev.json
+
+# CI/CD and production configs
+config.prod.json
+config.staging.json
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
