@@ -15,11 +15,7 @@ import (
 )
 
 func TestCreateContact(t *testing.T) {
-	TestLogin(t)
-
-	user := new(entity.User)
-	err := db.Where("username = ?", "testuser123").First(user).Error
-	assert.Nil(t, err)
+	user := CreateTestUserWithLogin(t)
 
 	requestBody := model.CreateContactRequest{
 		FirstName: "Eko Kurniawan",
@@ -56,16 +52,12 @@ func TestCreateContact(t *testing.T) {
 }
 
 func TestCreateContactFailed(t *testing.T) {
-	TestLogin(t)
-
-	user := new(entity.User)
-	err := db.Where("username = ?", "testuser123").First(user).Error
-	assert.Nil(t, err)
+	user := CreateTestUserWithLogin(t)
 
 	requestBody := model.CreateContactRequest{
 		FirstName: "",
 		LastName:  "",
-		Email:     "",
+		Email:     "invalid-email",
 		Phone:     "",
 	}
 	bodyJson, err := json.Marshal(requestBody)
@@ -116,7 +108,7 @@ func TestGetConnect(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
-	assert.Equal(t, contact.ID, responseBody.Data.ID)
+	assert.Equal(t, contact.ID.String(), responseBody.Data.ID)
 	assert.Equal(t, contact.FirstName, responseBody.Data.FirstName)
 	assert.Equal(t, contact.LastName, responseBody.Data.LastName)
 	assert.Equal(t, contact.Email, responseBody.Data.Email)
@@ -208,7 +200,7 @@ func TestUpdateContactFailed(t *testing.T) {
 	requestBody := model.UpdateContactRequest{
 		FirstName: "",
 		LastName:  "",
-		Email:     "",
+		Email:     "invalid-email",
 		Phone:     "",
 	}
 	bodyJson, err := json.Marshal(requestBody)
@@ -320,11 +312,7 @@ func TestDeleteContactFailed(t *testing.T) {
 }
 
 func TestSearchContact(t *testing.T) {
-	TestLogin(t)
-
-	user := new(entity.User)
-	err := db.Where("username = ?", "testuser123").First(user).Error
-	assert.Nil(t, err)
+	user := CreateTestUserWithLogin(t)
 
 	CreateContacts(user, 20)
 
@@ -351,11 +339,7 @@ func TestSearchContact(t *testing.T) {
 }
 
 func TestSearchContactWithPagination(t *testing.T) {
-	TestLogin(t)
-
-	user := new(entity.User)
-	err := db.Where("username = ?", "testuser123").First(user).Error
-	assert.Nil(t, err)
+	user := CreateTestUserWithLogin(t)
 
 	CreateContacts(user, 20)
 
@@ -382,15 +366,13 @@ func TestSearchContactWithPagination(t *testing.T) {
 }
 
 func TestSearchContactWithFilter(t *testing.T) {
-	TestLogin(t)
-
-	user := new(entity.User)
-	err := db.Where("username = ?", "testuser123").First(user).Error
-	assert.Nil(t, err)
+	user := CreateTestUserWithLogin(t)
 
 	CreateContacts(user, 20)
 
-	request := httptest.NewRequest(http.MethodGet, "/api/contacts?name=contact&phone=08000000&email=example.com", nil)
+	// Use filters that match the actual data created by CreateContacts:
+	// FirstName: "Contact", Phone: "080000000", "080000001", Email: contains "@example.com"
+	request := httptest.NewRequest(http.MethodGet, "/api/contacts?name=Contact&phone=0800000&email=example", nil)
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Authorization", user.Token)
 

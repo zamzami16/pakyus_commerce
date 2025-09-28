@@ -4,6 +4,7 @@
 # Config files with sensitive data (production config)
 config.json
 config.dev.json
+config.test.json
 
 # Local development config (optional - can be shared among team)
 # config.dev.json

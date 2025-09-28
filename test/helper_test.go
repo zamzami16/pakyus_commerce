@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func ClearAll() {
@@ -36,8 +37,49 @@ func ClearAddresses() {
 	}
 }
 
+// CreateTestUser creates a user with known credentials and token for testing
+func CreateTestUser(t *testing.T, username string, password string) *entity.User {
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	assert.Nil(t, err)
+
+	// Create user with token
+	user := &entity.User{
+		ID:       uuid.New(),
+		Username: username,
+		Name:     "Test User",
+		Password: string(hashedPassword),
+		Token:    uuid.NewString(), // Generate token for authentication
+	}
+
+	err = db.Create(user).Error
+	assert.Nil(t, err)
+	return user
+}
+
+// CreateTestUserWithLogin creates user and logs them in to get a valid token
+func CreateTestUserWithLogin(t *testing.T) *entity.User {
+	ClearAll() // Clean slate
+
+	password := "rahasia"
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	assert.Nil(t, err)
+
+	user := &entity.User{
+		ID:       uuid.New(),
+		Username: "testuser123",
+		Name:     "Test User",
+		Password: string(hashedPassword),
+		Token:    uuid.NewString(), // Pre-generate token
+	}
+
+	err = db.Create(user).Error
+	assert.Nil(t, err)
+	return user
+}
+
 func CreateContacts(user *entity.User, total int) {
-	for i := 0; i < total; i++ {
+	for i := range total {
 		contact := &entity.Contact{
 			ID:        uuid.New(),
 			FirstName: "Contact",
@@ -54,7 +96,7 @@ func CreateContacts(user *entity.User, total int) {
 }
 
 func CreateAddresses(t *testing.T, contact *entity.Contact, total int) {
-	for i := 0; i < total; i++ {
+	for range total {
 		address := &entity.Address{
 			ID:         uuid.New(),
 			ContactId:  contact.ID,

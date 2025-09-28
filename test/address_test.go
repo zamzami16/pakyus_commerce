@@ -5,18 +5,30 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"pakyus_commerce/internal/entity"
 	"pakyus_commerce/internal/model"
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateAddress(t *testing.T) {
-	TestCreateContact(t)
+	// Create test user
+	user := CreateTestUserWithLogin(t)
 
-	user := GetFirstUser(t)
-	contact := GetFirstContact(t, user)
+	// Create test contact
+	contact := &entity.Contact{
+		ID:        uuid.New(),
+		FirstName: "Test",
+		LastName:  "Contact",
+		Email:     "test@example.com",
+		Phone:     "08123456789",
+		UserId:    user.ID,
+	}
+	err := db.Create(contact).Error
+	assert.Nil(t, err)
 
 	requestBody := model.CreateAddressRequest{
 		Street:     "Jalan Belum Jadi",
@@ -55,17 +67,27 @@ func TestCreateAddress(t *testing.T) {
 }
 
 func TestCreateAddressFailed(t *testing.T) {
-	TestCreateContact(t)
+	// Create test user
+	user := CreateTestUserWithLogin(t)
 
-	user := GetFirstUser(t)
-	contact := GetFirstContact(t, user)
+	// Create test contact
+	contact := &entity.Contact{
+		ID:        uuid.New(),
+		FirstName: "Test",
+		LastName:  "Contact",
+		Email:     "test@example.com",
+		Phone:     "08123456789",
+		UserId:    user.ID,
+	}
+	err := db.Create(contact).Error
+	assert.Nil(t, err)
 
 	requestBody := model.CreateAddressRequest{
-		Street:     "Jalan Belum Jadi",
-		City:       "Jakarta",
-		Province:   "DKI Jakarta",
-		PostalCode: "343443343443343443343443343443343443343443",
-		Country:    "Indonesia",
+		Street:     "Very long street name that exceeds the maximum limit of 255 characters which should trigger a validation error because this street name is intentionally made very long to exceed the validation limit that has been set in the validation rules for the street field in the CreateAddressRequest struct",
+		City:       "",
+		Province:   "",
+		PostalCode: "",
+		Country:    "",
 	}
 	bodyJson, err := json.Marshal(requestBody)
 	assert.Nil(t, err)
@@ -245,11 +267,11 @@ func TestUpdateAddressFailed(t *testing.T) {
 	address := GetFirstAddress(t, contact)
 
 	requestBody := model.UpdateAddressRequest{
-		Street:     "Jalan Lagi Dijieun",
-		City:       "Bandung",
-		Province:   "Jawa Barat",
-		PostalCode: "343443343443343443343443343443343443343443",
-		Country:    "Indonesia",
+		Street:     "",
+		City:       "",
+		Province:   "",
+		PostalCode: "12345678901",
+		Country:    "",
 	}
 	bodyJson, err := json.Marshal(requestBody)
 	assert.Nil(t, err)
