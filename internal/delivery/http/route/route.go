@@ -7,11 +7,12 @@ import (
 )
 
 type RouteConfig struct {
-	App               *fiber.App
-	UserController    *http.UserController
-	ContactController *http.ContactController
-	AddressController *http.AddressController
-	AuthMiddleware    fiber.Handler
+	App                *fiber.App
+	UserController     *http.UserController
+	ContactController  *http.ContactController
+	AddressController  *http.AddressController
+	AuthMiddleware     fiber.Handler
+	CategoryController *http.CategoryController
 }
 
 func (c *RouteConfig) Setup() {
@@ -22,6 +23,9 @@ func (c *RouteConfig) Setup() {
 func (c *RouteConfig) SetupGuestRoute() {
 	c.App.Post("/api/users", c.UserController.Register)
 	c.App.Post("/api/users/_login", c.UserController.Login)
+
+	// Category routes (public access)
+	c.App.Get("/api/categories", c.CategoryController.List)
 }
 
 func (c *RouteConfig) SetupAuthRoute() {

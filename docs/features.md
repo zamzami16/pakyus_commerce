@@ -72,11 +72,37 @@ Siap 💯, kita update breakdown fitur Mini E-Commerce + Chat biar lebih **reali
 
 **Products**
 
-* id
-* seller_id → Users.id
-* name
-* price
-* stock
+* `id`
+* `seller_id` → Users.id
+* `name` → nama produk
+* `description` → detail produk (HTML/text)
+* `price` → harga produk
+* `stock` → jumlah stok
+* `category_id` → Categories.id (opsional, kalau mau grouping)
+* `sku` → kode unik produk
+* `weight` → berat (buat ongkir)
+* `dimensions` → panjang x lebar x tinggi (opsional, bisa string/json)
+* `condition` → new / used
+* `status` → active / inactive (kalau seller nonaktifkan produk)
+* `created_at`
+* `updated_at`
+
+---
+
+**Categories**
+
+* `id`
+* `name`
+* `parent_id` → Categories.id (biar bisa nested: Elektronik > Handphone)
+
+---
+
+**ProductImages**
+
+* `id`
+* `product_id` → Products.id
+* `url`
+* `is_primary` (bool)
 
 **Orders**
 
